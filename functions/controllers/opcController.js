@@ -19,14 +19,14 @@ exports.storeData = async (req, res) => {
     //clean up the key 
     const cleanedKey = key.trim(); // Remove leading/trailing spaces, if necessary
 
-    console.log(cleanedKey); // This will log '7uiqZnLD4iu5wRLzabpe, true'
+    console.log(cleanedKey); // This will log '7uiqZnLD4iu5wRLzabpe, true, message, count'
 
-    // Split the input string into ID and value
-    const [id, value, message] = cleanedKey.split(', ');
+    // Split the input string into ID, value, message, and count
+    const [id, value, message, count] = cleanedKey.split(', ');
 
     // Validate extracted data
     if (!id || !value) {
-      return errorResponse(res, "Invalid format: expected 'id, value'", 400);
+      return errorResponse(res, "Invalid format: expected 'id, value, message, count'", 400);
     }
 
     // Ensure `value` is either "true" or "false"
@@ -38,10 +38,11 @@ exports.storeData = async (req, res) => {
 
     if (!isOnline && message) {
       // Update Firestore document
-      const docRef = db.collection("systems").doc(id); // Get document reference
+      const docRef = db.collection("systems").doc(id);
       await docRef.update({
-        online: isOnline === "true", // Convert string to boolean
-        message
+        online: isOnline === "true",
+        message,
+        count: count || '0' // Add count field with default value if not provided
       });
     }
     else if (isOnline && message) {
@@ -53,13 +54,14 @@ exports.storeData = async (req, res) => {
       }
 
       // Update Firestore document
-      const docRef = db.collection("systems").doc(id); // Get document reference
+      const docRef = db.collection("systems").doc(id);
       await docRef.update({
-        online: isOnline === "true", // Convert string to boolean
-        message
+        online: isOnline === "true",
+        message,
+        count: count || '0' // Add count field with default value if not provided
       });
 
-      // Update Firestore document
+      // Update Firestore document for downed lines
       await db.collection("downedLines").add({
         lineId: id,
         lineName: lineData.line_Name || "Unknown Line",
@@ -73,10 +75,9 @@ exports.storeData = async (req, res) => {
         supervisorName: '',
         faultMessage: message,
         faultStatus: "warning",
+        count: count || '0' // Add count field to downedLines collection
       });
     }
-
-
 
     return successResponse(res, { id }, "Data stored successfully", 201);
   } catch (error) {
