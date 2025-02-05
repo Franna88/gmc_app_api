@@ -11,10 +11,10 @@ exports.storeData = async (req, res) => {
     // Step 2: Remove the empty value after the colon
     // formattedString = formattedString.split(':')[0].trim();
     // console.log(formattedString);
-    
+
     const receivedObject = req.body;
     // Extract the key from the object
-    const key = Object.keys(receivedObject)[0]; 
+    const key = Object.keys(receivedObject)[0];
 
     //clean up the key 
     const cleanedKey = key.trim(); // Remove leading/trailing spaces, if necessary
@@ -36,7 +36,7 @@ exports.storeData = async (req, res) => {
       return errorResponse(res, "Invalid value: 'value' must be 'true' or 'false'", 400);
     }
 
-    if(!isOnline && message){
+    if (!isOnline && message) {
       // Update Firestore document
       const docRef = db.collection("systems").doc(id); // Get document reference
       await docRef.update({
@@ -44,7 +44,7 @@ exports.storeData = async (req, res) => {
         message
       });
     }
-    else if(isOnline && message){
+    else if (isOnline && message) {
       const lineSnapshot = await db.collection("systems").doc(id).get();
       const lineData = lineSnapshot.data();
       if (!lineSnapshot.exists) {
@@ -73,10 +73,10 @@ exports.storeData = async (req, res) => {
         supervisorName: '',
         faultMessage: message,
         faultStatus: "warning",
-      }); 
+      });
     }
 
-    
+
 
     return successResponse(res, { id }, "Data stored successfully", 201);
   } catch (error) {
